@@ -1,9 +1,9 @@
-package com.cpsoneghett.walletapi.domain.dto;
+package com.cpsoneghett.walletapi.domain.dto.coincap;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record AssetDto(String id,
+public record TokenDto(String id,
                        String rank,
                        String symbol,
                        String name,

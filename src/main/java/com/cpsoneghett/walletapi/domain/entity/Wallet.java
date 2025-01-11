@@ -2,20 +2,28 @@ package com.cpsoneghett.walletapi.domain.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "wallet")
+@Table(name = "WALLET")
+@EntityListeners(AuditingEntityListener.class)
 public class Wallet {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    private String email;
 
     @Column(name = "public_address")
     private String publicAddress;
@@ -24,6 +32,14 @@ public class Wallet {
     private String privateKey;
 
     private BigDecimal total;
+
+    @CreatedDate
+    @Column(name = "dt_created", updatable = false)
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    @Column(name = "dt_updated")
+    private LocalDateTime updatedAt;
 
     public Wallet() {
     }
@@ -34,35 +50,23 @@ public class Wallet {
         this.total = BigDecimal.ZERO;
     }
 
-    public Long getId() {
-        return id;
+    public String getEmail() {
+        return email;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getPublicAddress() {
         return publicAddress;
     }
 
-    public void setPublicAddress(String publicAddress) {
-        this.publicAddress = publicAddress;
-    }
-
     public String getPrivateKey() {
         return privateKey;
     }
 
-    public void setPrivateKey(String privateKey) {
-        this.privateKey = privateKey;
-    }
-
-    public BigDecimal getTotal() {
-        return total;
-    }
-
-    public void setTotal(BigDecimal total) {
-        this.total = total;
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 }

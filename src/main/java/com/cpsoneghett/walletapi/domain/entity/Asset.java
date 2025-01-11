@@ -1,17 +1,17 @@
 package com.cpsoneghett.walletapi.domain.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
 @Table(name = "ASSET")
+@EntityListeners(AuditingEntityListener.class)
 public class Asset {
 
     @Id
@@ -28,6 +28,14 @@ public class Asset {
     private BigDecimal price;
 
     private BigDecimal value;
+
+    @CreatedDate
+    @Column(name = "dt_created", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    @Column(name = "dt_updated")
+    private LocalDateTime updatedAt;
 
     public Long getId() {
         return id;

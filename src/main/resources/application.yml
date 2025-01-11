@@ -7,10 +7,15 @@ spring:
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
-    show-sql: true
+    show-sql: false
   jackson:
     deserialization:
-      fail-on-unknown-properties: true
+      fail-on-unknown-properties: false
 
 server:
   port: 8081
+
+
+global:
+  configuration:
+    asset-update-time-scheduler: 20 #Time in minutes

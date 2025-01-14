@@ -151,6 +151,12 @@ Response:
 }
 ```
 
+### Checking all endpoints:
+
+```
+   http://localhost:8081/swagger-ui/index.html
+```
+
 ## Possible improvements:
 
 1) To implement API Security for endpoints;

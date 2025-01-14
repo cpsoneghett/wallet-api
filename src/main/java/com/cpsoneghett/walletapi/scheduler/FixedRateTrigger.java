@@ -17,9 +17,9 @@ public class FixedRateTrigger implements Trigger {
     @Override
     public Instant nextExecution(TriggerContext triggerContext) {
         Date lastExecution = triggerContext.lastCompletionTime();
-        if (lastExecution == null) {
-            return new Date().toInstant(); // Schedule immediately if no prior execution
-        }
+        if (lastExecution == null)
+            return new Date().toInstant();
+
         return new Date(lastExecution.getTime() + fixedRate).toInstant();
     }
 

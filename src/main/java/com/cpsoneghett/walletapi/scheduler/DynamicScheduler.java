@@ -14,10 +14,8 @@ import java.util.concurrent.ScheduledFuture;
 @Component
 public class DynamicScheduler {
 
-    private static final Logger logger = LoggerFactory.getLogger(DynamicScheduler.class);
-
     public static final String ASSET_UPDATE_PERIOD = "ASSET_UPDATE_PERIOD";
-
+    private static final Logger logger = LoggerFactory.getLogger(DynamicScheduler.class);
     private final TokenService tokenService;
     private final GlobalParameterService globalParameterService;
 
@@ -48,7 +46,7 @@ public class DynamicScheduler {
 
 
         logger.info("Scheduling task with a fixed rate of {} ms", fixedRate);
-        // scheduledTask = taskScheduler.schedule(tokenService::updateTokensHistoryList, new FixedRateTrigger(fixedRate));
+        scheduledTask = taskScheduler.schedule(tokenService::updateTokensHistoryList, new FixedRateTrigger(fixedRate));
         logger.info("Task scheduled successfully.");
     }
 

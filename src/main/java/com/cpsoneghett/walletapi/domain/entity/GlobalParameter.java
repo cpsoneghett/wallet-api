@@ -16,6 +16,14 @@ public class GlobalParameter {
     @Column(name = "gp_value")
     private String value;
 
+    public GlobalParameter() {
+    }
+
+    public GlobalParameter(String key, String value) {
+        this.key = key;
+        this.value = value;
+    }
+
     public String getValue() {
         return value;
     }

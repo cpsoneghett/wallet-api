@@ -10,8 +10,6 @@ public interface CoinCapService {
 
     TokenSingleResponseDto getAssetById(String assetId);
 
-    TokenHistoryResponseDto getTokenHistory(String assetName);
-
-    TokenHistoryResponseDto getTokenHistory(String assetName, String interval, String period);
+    TokenHistoryResponseDto getTokenHistory(String assetName, String interval, String period, String baseUrl);
 
 }

@@ -1,56 +1,162 @@
-Project: Crypto Wallet
+# Wallet-API
 
-Description:
+**Author:** Christiano Soneghett
 
-This project will develop a crypto wallet application that allows users to track their crypto holdings and analyze their wallet performance.
+## Project Stack:
 
-Requirements:
+- **Java 21**
+- **Spring Boot 3.4.1**
+- **MySQL 8.x**
+- **Docker**
 
-1. Get the Latest Prices:
+## How to Run The Application:
 
-[ ] Implement functionality to retrieve the latest prices for user tokens from the CoinCap API.
-[ ] Make the price retrieval process recurrent with a configurable time interval.
-[ ] Utilize multithreading to fetch prices for 3 tokens simultaneously for efficiency.
+### 1. With Docker:
 
-2. Save the Information:
+At the root directory, run:
 
-[ ] Design a database schema to store user wallet information, including token symbol, quantity, and price.
-[ ] Develop logic to save the retrieved token prices to the database.
+```bash
+docker-compose up --build
+```
 
-3. Add Asset to the Wallet:
+Then, the server might start at port 8081 as exposed in the docker-compose.yml. If not, after MySQL starts, you can run
+the application directly from the project root with tests:
 
-[ ] Implement functionality for users to add new assets (tokens) to their wallet, specifying symbol, price, and quantity.
+```bash
+mvn spring-boot:run
+```
 
-4. Show Wallet Information:
+## About the Features:
 
-[ ] Create an API endpoint that returns the user's wallet information in JSON format.
-[ ] The response should include details for each token (symbol, price, quantity, value) and the total wallet value in USD.
-5. Wallet Evaluation:
+### Pre-Configurations:
 
-[ ] Develop functionality to evaluate the user's wallet performance on a specific date or for the current day.
-[ ] The evaluation should accept a list of tokens with symbol, quantity, and average buy price as input (JSON format).
-[ ] The program should calculate the following:
-Total wallet value in USD.
-Best performing asset (symbol and percentage appreciation).
-Worst performing asset (symbol and percentage depreciation).
-[ ] The evaluation results should be returned as a JSON response.
-Project Key Points:
+Some configurable features will have a database global parameter (GLOBAL_PARAMETER table), which stores key-value pairs
+that the application uses to dynamically adjust behavior when updated.
 
-Project Structure:
+### 1) Feed the Token Table:
 
-[ ] Define entities (models) for User and Wallet with their relationships.
-[ ] Implement logic for managing user wallets and their associated assets.
-Assets Recurrent Update:
+For all purposes, I'll refer to the cryptos individually as TOKENS and the cryptos in the user's wallets as ASSETS. Upon
+startup, the Wallet-API will retrieve all tokens from the CoinCap API (https://api.coincap.io/v2/assets) and populate
+the TOKEN table, if available.
 
-[ ] Configure the price update frequency based on user preference.
-[ ] Utilize multithreading to retrieve prices for multiple tokens concurrently.
-Wallet Evaluation:
+### 2) Get The Last Prices (Scheduled):
 
-[ ] Calculate the total wallet value based on current token prices.
-[ ] Compare current prices with average buy prices to determine performance for each token.
-[ ] Identify the best and worst performing assets based on percentage change.
+The API will fetch the history from the CoinCap
+API (https://api.coincap.io/v2/assets/bitcoin/history?interval=<dynamic_interval>) where <dynamic_interval> is, by
+default, m1 (prices with a 1-minute interval). This value can be configured through an endpoint, which will update the
+value in the GLOBAL_PARAMETER table.
 
-General:
+To change the interval, you can send a request to the following URL:
 
-[ ] Select and implement an SQL database to store wallet and token information.
-[ ] Design API endpoints to handle requests and responses in JSON format.
+```
+POST http://localhost:8081/api/v1/scheduler/update
+```
+
+Payload:
+
+```
+20
+```
+
+About the concurrency, it was created an AsyncConfig.java and a SchedulerConfig.java to work with a DynamicScheduler.java class that
+will configure the fixedRate to get the prices from the CoinCapAPI.
+
+DynamicScheduler.java
+```java
+    @PostConstruct
+    public void startScheduler() {
+        long initialRate = getAssetUpdatePeriod();
+        logger.info("Starting scheduler with initial rate: {} ms", initialRate);
+        scheduleTask(initialRate);
+    }
+
+    public void scheduleTask(long fixedRate) {
+        if (scheduledTask != null) {
+            logger.info("Cancelling existing scheduled task before scheduling a new one.");
+            scheduledTask.cancel(false);
+        }
+
+
+        logger.info("Scheduling task with a fixed rate of {} ms", fixedRate);
+        scheduledTask = taskScheduler.schedule(tokenService::updateTokensHistoryList, new FixedRateTrigger(fixedRate));
+        logger.info("Task scheduled successfully.");
+    }
+```
+
+After the project starts, the scheduler starts and add the UpdateTokenHistory to be monitored constantly at a fixedRate (initially with 5min).
+The tokens found to update will be added to a list of List<CompletableFuture<Void>> to be processed asynchronously.
+
+### 3) Save the information:
+
+The initial schemas for MySQL (excluding for tests) are being imported by Flyway scripts.
+
+All the assets are being saved in a table ASSET that are associated to one WALLET.
+
+### 4) Show Wallet Information:
+
+Some wallet's info will be presented by the following URL:
+
+```
+GET http://localhost:8081/api/v1/wallet/<private_key>
+```
+
+To create a wallet, the only request needed:
+
+```
+POST http://localhost:8081/api/v1/wallet/create
+```
+
+Payload:
+
+```
+{
+    "email": test@test.com
+}
+```
+
+Response:
+
+```
+{
+    "email": "test@test.com",
+    "publicAddress": "mn2BvxoqFgJnHtd67qsw9SDXZLgAyxY2Ya",
+    "privateKey": "cQLadJ7g9smorV5EdQHaBTyRG8i9W7ws4sJDf2cLeozyv1YdtAwZ",
+    "createdAt": "2025-01-14T12:06:16.9631971"
+}
+```
+
+### 5) Wallet evaluation:
+
+The wallet evaluation will be presented by the following request:
+
+```
+POST http://localhost:8081/api/v1/wallet/evaluate
+```
+
+Payload:
+
+```
+BTC, 0.12345, 37870.5058
+ETH, 4.89532, 2004.9774
+```
+
+Response:
+```
+{
+    "total": 27646.002225875406871828029,
+    "best_asset": "BTC",
+    "best_performance": 154.72,
+    "worst_asset": "ETH",
+    "worst_performance": 60.34
+}
+```
+
+## Possible improvements:
+
+1) To implement API Security for endpoints;
+2) Check more carefully API's performance and then maybe check the need to a load balancer;
+3) Review the updates frequency and the accuracy of the values that will be updated in each wallet to avoid any
+   incorrect value calculated or presented;
+4) Better exception handling with ActionListeners;
+5) Better responses in the Controllers, with a user message and a dev message, in case of some exception;
+6) More unit and integrated tests;

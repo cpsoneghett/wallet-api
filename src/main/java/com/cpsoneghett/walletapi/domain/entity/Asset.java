@@ -18,15 +18,19 @@ public class Asset {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "asset_id")
-    private UUID asset;
+    @ManyToOne(cascade = CascadeType.ALL, optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_wallet")
+    private Wallet wallet;
 
-    private String symbol;
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "id_token", referencedColumnName = "id")
+    private Token token;
 
     private BigDecimal quantity;
 
     private BigDecimal price;
 
+    @Column(name = "`value`")
     private BigDecimal value;
 
     @CreatedDate
@@ -37,28 +41,32 @@ public class Asset {
     @Column(name = "dt_updated")
     private LocalDateTime updatedAt;
 
+    public Asset() {
+
+    }
+
+    public Asset(Token token, Wallet wallet, BigDecimal quantity, BigDecimal price, BigDecimal value) {
+
+    }
+
     public Long getId() {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public Wallet getWallet() {
+        return wallet;
     }
 
-    public UUID getAsset() {
-        return asset;
+    public void setWallet(Wallet wallet) {
+        this.wallet = wallet;
     }
 
-    public void setAsset(UUID asset) {
-        this.asset = asset;
+    public Token getToken() {
+        return token;
     }
 
-    public String getSymbol() {
-        return symbol;
-    }
-
-    public void setSymbol(String symbol) {
-        this.symbol = symbol;
+    public void setToken(Token token) {
+        this.token = token;
     }
 
     public BigDecimal getQuantity() {

@@ -1,18 +1,17 @@
 package com.cpsoneghett.walletapi.domain.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.cpsoneghett.walletapi.domain.dto.AssetDto;
+import jakarta.persistence.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "WALLET")
@@ -23,12 +22,13 @@ public class Wallet {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "email", nullable = false, unique = true, length = 50)
     private String email;
 
-    @Column(name = "public_address")
+    @Column(name = "public_address", nullable = false, unique = true, length = 50)
     private String publicAddress;
 
-    @Column(name = "private_key")
+    @Column(name = "private_key", nullable = false, unique = true, length = 50)
     private String privateKey;
 
     private BigDecimal total;
@@ -41,6 +41,9 @@ public class Wallet {
     @Column(name = "dt_updated")
     private LocalDateTime updatedAt;
 
+    @OneToMany(mappedBy = "wallet")
+    private Set<Asset> assets;
+
     public Wallet() {
     }
 
@@ -48,6 +51,11 @@ public class Wallet {
         this.publicAddress = publicAddress;
         this.privateKey = privateKey;
         this.total = BigDecimal.ZERO;
+        this.assets = new HashSet<>();
+    }
+
+    public Long getId() {
+        return id;
     }
 
     public String getEmail() {
@@ -62,11 +70,48 @@ public class Wallet {
         return publicAddress;
     }
 
+    public void setPublicAddress(String publicAddress) {
+        this.publicAddress = publicAddress;
+    }
+
     public String getPrivateKey() {
         return privateKey;
+    }
+
+    public void setPrivateKey(String privateKey) {
+        this.privateKey = privateKey;
+    }
+
+    public BigDecimal getTotal() {
+        return total;
+    }
+
+    public void setTotal(BigDecimal total) {
+        this.total = total;
+    }
+
+    public Set<Asset> getAssets() {
+        return assets;
+    }
+
+    public void addAsset(Asset asset) {
+        this.assets.add(asset);
     }
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
+
+    public List<AssetDto> assetsToDto() {
+
+        return assets.stream()
+                .map(asset -> new AssetDto(
+                        asset.getToken().getSymbol(),
+                        asset.getQuantity(),
+                        asset.getPrice(),
+                        asset.getValue()
+                ))
+                .toList();
+    }
+
 }
